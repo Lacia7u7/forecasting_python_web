@@ -1,0 +1,127 @@
+<html>
+<head>
+<title>UsedCarDataset.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+UsedCarDataset.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">%matplotlib inline</span>
+
+<span class="s0">#Imports</span>
+<span class="s2">import </span><span class="s1">pandas </span><span class="s2">as </span><span class="s1">pd</span>
+<span class="s2">import </span><span class="s1">numpy </span><span class="s2">as </span><span class="s1">np</span>
+<span class="s2">import </span><span class="s1">matplotlib.pyplot </span><span class="s2">as </span><span class="s1">plt</span>
+<span class="s0">#%% 
+#Data path</span>
+<span class="s1">dataset_path = </span><span class="s3">'Used Car Dataset.csv'</span>
+<span class="s0">#%% 
+#Dataset:</span>
+<span class="s1">dataset = pd.read_csv(dataset_path)</span>
+<span class="s0">#%% 
+</span><span class="s1">dataset</span>
+<span class="s0">#%% 
+</span><span class="s1">x_kms_driven = dataset[</span><span class="s3">'kms_driven'</span><span class="s1">]</span>
+<span class="s1">x_engine = dataset[</span><span class="s3">'engine(cc)'</span><span class="s1">]</span>
+<span class="s1">x_mileage = dataset[</span><span class="s3">'mileage(kmpl)'</span><span class="s1">]</span>
+<span class="s1">y = dataset[</span><span class="s3">'price(in lakhs)'</span><span class="s1">]</span>
+<span class="s1">len(x_engine)</span>
+<span class="s0">#%% 
+# Check for missing values (NaN)</span>
+<span class="s1">missing_values_mileage = np.isnan(x_mileage)</span>
+<span class="s1">missing_values_engine = np.isnan(x_engine)</span>
+<span class="s1">missing_values_kms_driven = np.isnan(x_kms_driven)</span>
+
+<span class="s1">missing_values = missing_values_mileage | missing_values_engine | missing_values_kms_driven</span>
+
+<span class="s1">x_kms_driven=x_kms_driven[missing_values == </span><span class="s2">False</span><span class="s1">]</span>
+<span class="s1">x_mileage=x_mileage[missing_values == </span><span class="s2">False</span><span class="s1">]</span>
+<span class="s1">x_engine=x_engine[missing_values == </span><span class="s2">False</span><span class="s1">]</span>
+
+<span class="s1">y = y[missing_values==</span><span class="s2">False</span><span class="s1">]</span>
+<span class="s0">#engine&lt;1500</span>
+<span class="s0">#kms&lt;5000000</span>
+<span class="s0">#</span>
+<span class="s1">np.average(x_kms_driven)</span>
+<span class="s0">#%% 
+# Calculate quartiles and IQR for each variable</span>
+<span class="s1">Q1_mileage</span><span class="s2">, </span><span class="s1">Q3_mileage = np.percentile(x_mileage</span><span class="s2">, </span><span class="s1">[</span><span class="s4">25</span><span class="s2">, </span><span class="s4">75</span><span class="s1">])</span>
+<span class="s1">IQR_mileage = Q3_mileage - Q1_mileage</span>
+
+<span class="s1">Q1_engine</span><span class="s2">, </span><span class="s1">Q3_engine = np.percentile(x_engine</span><span class="s2">, </span><span class="s1">[</span><span class="s4">25</span><span class="s2">, </span><span class="s4">75</span><span class="s1">])</span>
+<span class="s1">IQR_engine = Q3_engine - Q1_engine</span>
+
+<span class="s1">Q1_kms_driven</span><span class="s2">, </span><span class="s1">Q3_kms_driven = np.percentile(x_kms_driven</span><span class="s2">, </span><span class="s1">[</span><span class="s4">25</span><span class="s2">, </span><span class="s4">75</span><span class="s1">])</span>
+<span class="s1">IQR_kms_driven = Q3_kms_driven - Q1_kms_driven</span>
+
+<span class="s1">Q1_y</span><span class="s2">, </span><span class="s1">Q3_y = np.percentile(y</span><span class="s2">, </span><span class="s1">[</span><span class="s4">25</span><span class="s2">, </span><span class="s4">75</span><span class="s1">])  </span><span class="s0"># Quartiles and IQR for y</span>
+<span class="s1">IQR_y = Q3_y - Q1_y</span>
+
+<span class="s0"># Define the threshold for outliers (e.g., 1.5 times the IQR)</span>
+<span class="s1">threshold = </span><span class="s4">2</span>
+
+<span class="s0"># Identify outliers for each variable</span>
+<span class="s1">outliers_mileage = (x_mileage &lt; Q1_mileage - threshold * IQR_mileage) | (x_mileage &gt; Q3_mileage + threshold * IQR_mileage)</span>
+<span class="s1">outliers_engine = (x_engine &lt; Q1_engine - threshold * IQR_engine) | (x_engine &gt; Q3_engine + threshold * IQR_engine)</span>
+<span class="s1">outliers_kms_driven = (x_kms_driven &lt; Q1_kms_driven - threshold * IQR_kms_driven) | (x_kms_driven &gt; Q3_kms_driven + threshold * IQR_kms_driven)</span>
+<span class="s1">outliers_y = (y &lt; Q1_y - threshold * IQR_y) | (y &gt; Q3_y + threshold * IQR_y)  </span><span class="s0"># Identify outliers for y</span>
+
+<span class="s0"># Remove outliers from each variable</span>
+<span class="s1">x_mileage = x_mileage[~outliers_mileage &amp; ~outliers_engine &amp; ~outliers_kms_driven &amp; ~outliers_y]</span>
+<span class="s1">x_engine = x_engine[~outliers_mileage &amp; ~outliers_engine &amp; ~outliers_kms_driven &amp; ~outliers_y]</span>
+<span class="s1">x_kms_driven = x_kms_driven[~outliers_mileage &amp; ~outliers_engine &amp; ~outliers_kms_driven &amp; ~outliers_y]</span>
+<span class="s1">y = y[~outliers_mileage &amp; ~outliers_engine &amp; ~outliers_kms_driven &amp; ~outliers_y]</span>
+
+<span class="s0"># Stack the filtered variables to create the feature matrix X</span>
+<span class="s1">X = np.column_stack((x_kms_driven</span><span class="s2">, </span><span class="s1">x_mileage</span><span class="s2">, </span><span class="s1">x_engine))</span>
+
+<span class="s0">#%% 
+</span><span class="s1">print(max(X[:</span><span class="s2">,</span><span class="s4">0</span><span class="s1">]))</span>
+<span class="s1">print(len(X[:</span><span class="s2">,</span><span class="s4">0</span><span class="s1">]))</span>
+<span class="s1">np.average(X[:</span><span class="s2">,</span><span class="s4">0</span><span class="s1">])</span>
+<span class="s0">#%% 
+# Create and fit the linear regression model</span>
+<span class="s1">model = LinearRegression()</span>
+<span class="s1">model.fit(X</span><span class="s2">, </span><span class="s1">y)</span>
+
+
+<span class="s0"># Print the coefficients</span>
+<span class="s1">print(</span><span class="s3">&quot;Coefficients:&quot;</span><span class="s2">, </span><span class="s1">model.coef_)</span>
+
+<span class="s0"># Print the intercept</span>
+<span class="s1">print(</span><span class="s3">&quot;Intercept:&quot;</span><span class="s2">, </span><span class="s1">model.intercept_)</span>
+
+<span class="s0">#%% 
+</span><span class="s2">import </span><span class="s1">seaborn </span><span class="s2">as </span><span class="s1">sns</span>
+<span class="s2">import </span><span class="s1">matplotlib.pyplot </span><span class="s2">as </span><span class="s1">plt</span>
+
+<span class="s0"># Create a DataFrame for visualization</span>
+<span class="s1">data = pd.DataFrame(X</span><span class="s2">, </span><span class="s1">columns=[</span><span class="s3">'Kms Driven'</span><span class="s2">, </span><span class="s3">'Mileage'</span><span class="s2">, </span><span class="s3">'Torque'</span><span class="s1">])</span>
+<span class="s1">data[</span><span class="s3">'Price'</span><span class="s1">] = y</span>
+
+<span class="s0"># Melt the DataFrame to long format for violin plot</span>
+<span class="s1">data_melted = data.melt(id_vars=</span><span class="s3">'Price'</span><span class="s2">, </span><span class="s1">var_name=</span><span class="s3">'Feature'</span><span class="s2">, </span><span class="s1">value_name=</span><span class="s3">'Value'</span><span class="s1">)</span>
+
+<span class="s0"># Create a violin plot</span>
+<span class="s1">plt.figure(figsize=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">8</span><span class="s1">))</span>
+<span class="s1">sns.violinplot(x=</span><span class="s3">'Feature'</span><span class="s2">, </span><span class="s1">y=</span><span class="s3">'Price'</span><span class="s2">, </span><span class="s1">data=data_melted</span><span class="s2">, </span><span class="s1">palette=</span><span class="s3">'muted'</span><span class="s1">)</span>
+<span class="s1">plt.title(</span><span class="s3">'Violin Plot of Price Across Features'</span><span class="s1">)</span>
+<span class="s1">plt.xlabel(</span><span class="s3">'Feature'</span><span class="s1">)</span>
+<span class="s1">plt.ylabel(</span><span class="s3">'Price'</span><span class="s1">)</span>
+<span class="s1">plt.show()</span>
+
+<span class="s0">#%% 
+</span></pre>
+</body>
+</html>
